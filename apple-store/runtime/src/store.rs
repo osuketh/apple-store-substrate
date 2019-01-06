@@ -20,13 +20,17 @@ decl_module! {
                 cur_apple_stock_amount >= Some(nums),
                 "I am sorry but apples are sold out |o|",
             );
-            <balances::Module<T>>::decrease_free_balance(&sender, Self::apple_price * nums)?;
-
             
+            let decrease_by = <T::Balance as As<u64>>::sa(Self::apple_price) * nums;
+            <balances::Module<T>>::decrease_free_balance(&sender, decrease_by)?;
+            
+            let cur_apple_nums = Self::apple_of(sender.clone());            
+            <AppleOf<T>>::insert(sender, cur_apple_nums + nums);            
 
-            let cur_apple_nums = Self::apple_of(sender.clone());
-            <AppleOf<T>>::insert(sender, cur_apple_nums + nums);
-            <AppleStockAmount<T>>:put(cur_apple_stock_amount - nums);
+            <AppleStockAmount<T>>::mutate(|amount| {
+                let new_amount = amount.map(|amount| amount - nums);
+                *amount = Some(new_amount);
+            });  
             Ok(())
         }
 
@@ -39,7 +43,7 @@ decl_module! {
             let sender = ensure_signed(origin)?;
             ensure!(sender == Self::owner(), "Only owner can mint apples.");           
 
-            <AppleAmount<T>>::mutate(|amount| {
+            <AppleStockAmount<T>>::mutate(|amount| {
                 let new_amount = amount.map_or(mint_by, |amount| amount + mint_by);
                 *amount = Some(new_amount);
             });            
@@ -79,7 +83,7 @@ decl_module! {
 decl_storage! {
     trait Store for Module<T: Trait> as AppleStore {
         pub Owner get(owner): T::AccountId;
-        pub AppleOf get(apple_of): map T::AccountId => Option<T::Balance>;
+        pub AppleOf get(apple_of): map T::AccountId => T::Balance;
         pub ApplePrice get(apple_price): u32;
         pub AppleStockAmount get(apple_stock_amount): Option<T::Balance>;
     }
