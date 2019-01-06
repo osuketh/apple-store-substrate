@@ -31,6 +31,8 @@ extern crate srml_upgrade_key as upgrade_key;
 extern crate srml_aura as aura;
 extern crate substrate_consensus_aura_primitives as consensus_aura;
 
+mod apple_store;
+
 use rstd::prelude::*;
 #[cfg(feature = "std")]
 use primitives::bytes;
@@ -179,6 +181,10 @@ impl upgrade_key::Trait for Runtime {
 	type Event = Event;
 }
 
+impl apple_store::Trait for Runtime {
+	type Event = Event;
+}
+
 construct_runtime!(
 	pub enum Runtime with Log(InternalLog: DigestItem<Hash, AuthorityId>) where
 		Block = Block,
@@ -191,6 +197,7 @@ construct_runtime!(
 		Aura: aura::{Module},
 		Balances: balances,
 		UpgradeKey: upgrade_key,
+		AppleStore: apple_store::{Module, Call, Storage, Event<T>},
 	}
 );
 

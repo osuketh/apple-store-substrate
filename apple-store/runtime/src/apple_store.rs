@@ -20,7 +20,7 @@ decl_module! {
                 cur_apple_stock_amount >= Some(nums),
                 "I am sorry but apples are sold out |o|",
             );
-            
+
             let decrease_by = <T::Balance as As<u64>>::sa(Self::apple_price) * nums;
             <balances::Module<T>>::decrease_free_balance(&sender, decrease_by)?;
             
@@ -32,12 +32,7 @@ decl_module! {
                 *amount = Some(new_amount);
             });  
             Ok(())
-        }
-
-        fn sell_apple(origin, nums: u32) -> Result {
-            let sender = ensure_signed(origin)?;
-            Ok(())
-        }
+        }        
 
         fn mint_apple(mint_by: T::Balance) -> Result {
             let sender = ensure_signed(origin)?;
