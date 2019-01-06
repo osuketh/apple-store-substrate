@@ -6,10 +6,11 @@ An apple store on substrate
 
 ## Build and Start apple-store chain
 ```
-./init.sh
-./build.sh
-cargo build --release
-./target/release/apple-store --dev
+$ curl https://getsubstrate.io -sSf | bash
+$ ./init.sh
+$ ./build.sh
+$ cargo build --release
+$ ./target/release/apple-store --dev
 ```
 
 ## Interactions with the runtime
