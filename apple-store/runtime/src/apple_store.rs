@@ -31,6 +31,8 @@ decl_module! {
                 let new_amount = amount.map(|amount| amount - nums);
                 *amount = Some(new_amount);
             });  
+
+            Self::deposit_event(RawEvent::AppleBought(sender, nums));            
             Ok(())
         }        
 
@@ -42,6 +44,7 @@ decl_module! {
                 let new_amount = amount.map_or(mint_by, |amount| amount + mint_by);
                 *amount = Some(new_amount);
             });            
+            Self::deposit_event(RawEvent::AppleMinted(mint_by));
             Ok(())
         }
 
@@ -85,8 +88,13 @@ decl_storage! {
 }
 
 decl_event! {
-    pub enum Event<T> where AccountId = <T as system::Trait>>::AccountId {
+    pub enum Event<T> 
+        where AccountId = <T as system::Trait>>::AccountId, 
+            Balance =  <T as system::Trait>>::Balance,
+    {
         OwnershipTransferred(AccountId, AccountId),
         ApplePriceSet(u32),
+        AppleMinted(Balance),
+        AppleBought(AccountId, Balance),
     }
 }
