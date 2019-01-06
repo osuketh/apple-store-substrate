@@ -1,7 +1,8 @@
-use srml_support::{StorageValue, dispatch::Result};
+use srml_support::{StorageValue, StorageMap, dispatch::Result};
 use {balances, system::ensure_signed};
+
+extern crate sr_std as rstd;
 use rstd::prelude::*;
-use runtime_primitives::traits::Hash;
 
 pub trait Trait: balances::Trait {
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
@@ -18,25 +19,25 @@ decl_module! {
 
             ensure!(
                 cur_apple_stock_amount >= Some(nums),
-                "I am sorry but apples are sold out |o|",
+                "I am sorry but apples are sold out |o|"
             );
 
-            let decrease_by = <T::Balance as As<u64>>::sa(Self::apple_price) * nums;
+            let decrease_by = Self::apple_price() * nums;
             <balances::Module<T>>::decrease_free_balance(&sender, decrease_by)?;
             
             let cur_apple_nums = Self::apple_of(sender.clone());            
-            <AppleOf<T>>::insert(sender, cur_apple_nums + nums);            
+            <AppleOf<T>>::insert(&sender, cur_apple_nums + nums);            
 
             <AppleStockAmount<T>>::mutate(|amount| {
                 let new_amount = amount.map(|amount| amount - nums);
-                *amount = Some(new_amount);
+                *amount = new_amount;
             });  
 
             Self::deposit_event(RawEvent::AppleBought(sender, nums));            
             Ok(())
         }        
 
-        fn mint_apple(mint_by: T::Balance) -> Result {
+        fn mint_apple(origin, mint_by: T::Balance) -> Result {
             let sender = ensure_signed(origin)?;
             ensure!(sender == Self::owner(), "Only owner can mint apples.");           
 
@@ -48,9 +49,9 @@ decl_module! {
             Ok(())
         }
 
-        fn set_price(origin, price: u32) -> Result {
+        fn set_price(origin, price: T::Balance) -> Result {
             let sender = ensure_signed(origin)?;            
-            ensure!(sender == Self::owner(), "Only owner can set the price of an apple.")
+            ensure!(sender == Self::owner(), "Only owner can set the price of an apple.");
 
             <ApplePrice<T>>::put(price);
             Self::deposit_event(RawEvent::ApplePriceSet(price));
@@ -82,18 +83,18 @@ decl_storage! {
     trait Store for Module<T: Trait> as AppleStore {
         pub Owner get(owner): T::AccountId;
         pub AppleOf get(apple_of): map T::AccountId => T::Balance;
-        pub ApplePrice get(apple_price): u32;
+        pub ApplePrice get(apple_price): T::Balance;
         pub AppleStockAmount get(apple_stock_amount): Option<T::Balance>;
     }
 }
 
 decl_event! {
     pub enum Event<T> 
-        where AccountId = <T as system::Trait>>::AccountId, 
-            Balance =  <T as system::Trait>>::Balance,
+        where AccountId = <T as system::Trait>::AccountId, 
+            Balance =  <T as balances::Trait>::Balance
     {
         OwnershipTransferred(AccountId, AccountId),
-        ApplePriceSet(u32),
+        ApplePriceSet(Balance),
         AppleMinted(Balance),
         AppleBought(AccountId, Balance),
     }
