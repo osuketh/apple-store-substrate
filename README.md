@@ -18,7 +18,7 @@ To simplify interactions with the runtime, we can use:
 
 To have it connect to your local node, set:
 <div align="center">
-<img width="100px" src="https://user-images.githubusercontent.com/20852667/50735241-25c47a00-11ef-11e9-8238-99abf1eee942.png">
+<img width="1000px" src="https://user-images.githubusercontent.com/20852667/50735241-25c47a00-11ef-11e9-8238-99abf1eee942.png">
 </div>
 
 Then, sending extrinsics and getting the chain state :raised_hands:
