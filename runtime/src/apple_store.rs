@@ -3,6 +3,9 @@ use {balances, system::ensure_signed};
 
 extern crate sr_std as rstd;
 use rstd::prelude::*;
+extern crate sr_primitives as primitives;
+extern crate substrate_primitives;
+use self::primitives::traits::CheckedAdd;
 
 pub trait Trait: balances::Trait {
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
@@ -23,10 +26,16 @@ decl_module! {
             );
 
             let decrease_by = Self::apple_price() * nums;
-            <balances::Module<T>>::decrease_free_balance(&sender, decrease_by)?;
-            
-            let cur_apple_nums = Self::apple_of(sender.clone());            
-            <AppleOf<T>>::insert(&sender, cur_apple_nums + nums);            
+            <balances::Module<T>>::decrease_free_balance(&sender, decrease_by)?;            
+            let cur_apple_nums = Self::apple_of(sender.clone());   
+
+            // Checking overflow            
+            let new_to_apple_balance = match cur_apple_nums.checked_add(&nums) {
+                Some(b) => b,
+                None => return Err("current apple balance too high to receive apples"),
+            };
+
+            <AppleOf<T>>::insert(&sender, new_to_apple_balance);            
 
             <AppleStockAmount<T>>::mutate(|amount| {
                 let new_amount = amount.map(|amount| amount - nums);
